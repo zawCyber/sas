@@ -1,117 +1,91 @@
-"use client";
+'use client';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
-import React, { useState, useRef } from "react";
-import { Mail, Phone, MapPin } from "lucide-react";
-import { motion, useInView } from "framer-motion";
+const CartPage = () => {
+  const [cartItems, setCartItems] = useState([]);
 
-const ContactPage = () => {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const [submitted, setSubmitted] = useState(false);
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cartItems');
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
+  }, []);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const removeItem = (index) => {
+    const newCart = cartItems.filter((_, i) => i !== index);
+    setCartItems(newCart);
+    localStorage.setItem('cartItems', JSON.stringify(newCart));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
-  };
-
-  // Ref for animated sections
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
+  const total = cartItems.reduce((sum, item) => sum + item.price, 0);
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-black min-h-screen text-white flex flex-col items-center justify-center px-6 py-12">
-      {/* Header */}
-      <motion.h1 
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="text-6xl font-extrabold text-white mb-6 bg-clip-text text-transparent bg-gradient-to-r from-gold-400 to-yellow-500 shadow-xl"
-      >
-        Contact Us
-      </motion.h1>
-      <motion.p 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-        className="text-gray-300 text-center mb-10 max-w-lg text-lg italic"
-      >
-        Let's collaborate and bring your vision to reality with elegance and excellence!
-      </motion.p>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Your Shopping Cart</h1>
+          <Link href="/" className="text-blue-600 hover:text-blue-800">
+            ← Continue Shopping
+          </Link>
+        </div>
 
-      {/* Contact Info */}
-      <motion.div 
-        ref={ref}
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={isInView ? { scale: 1, opacity: 1 } : {}} 
-        transition={{ duration: 0.8 }}
-        className="flex flex-col gap-6 mb-10 text-lg"
-      >
-        {[ 
-          { Icon: Mail, text: "reza@example.com" },
-          { Icon: Phone, text: "+62 812-3456-7890" },
-          { Icon: MapPin, text: "Bandung, Indonesia" }
-        ].map(({ Icon, text }, index) => (
-          <motion.div 
-            key={index}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6, delay: index * 0.2 }}
-            className="flex items-center gap-4 bg-gray-800 p-5 rounded-lg shadow-xl border border-yellow-500 hover:scale-105 transition-transform"
-          >
-            <Icon size={32} className="text-gold-400" />
-            <span className="text-lg font-semibold">{text}</span>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Contact Form */}
-      <motion.form 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        onSubmit={handleSubmit} 
-        className="bg-gray-900 p-10 rounded-2xl shadow-2xl w-full max-w-lg border border-yellow-500"
-      >
-        {["Name", "Email"].map((field, index) => (
-          <label className="block mb-6" key={index}>
-            <span className="text-gray-300 text-lg font-semibold">{field}</span>
-            <input
-              type={field.toLowerCase() === "email" ? "email" : "text"}
-              name={field.toLowerCase()}
-              value={form[field.toLowerCase()]}
-              onChange={handleChange}
-              required
-              className="w-full mt-2 p-4 rounded-lg bg-gray-800 text-white border border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            />
-          </label>
-        ))}
-        <label className="block mb-6">
-          <span className="text-gray-300 text-lg font-semibold">Message</span>
-          <textarea
-            name="message"
-            value={form.message}
-            onChange={handleChange}
-            required
-            className="w-full mt-2 p-4 rounded-lg bg-gray-800 text-white border border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            rows="5"
-          ></textarea>
-        </label>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          type="submit"
-          className="w-full bg-gradient-to-r from-yellow-500 to-gold-600 hover:from-gold-600 hover:to-yellow-500 text-black py-4 px-8 rounded-lg shadow-xl transition duration-300 text-lg font-bold border border-yellow-300"
-        >
-          Send Message
-        </motion.button>
-        {submitted && <p className="text-green-400 text-center mt-4 text-lg">Message sent successfully!</p>}
-      </motion.form>
+        {cartItems.length === 0 ? (
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <h2 className="mt-2 text-lg font-medium text-gray-900">Your cart is empty</h2>
+            <p className="mt-1 text-gray-500">Add some items to your cart to get started.</p>
+          </div>
+        ) : (
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            <ul className="divide-y divide-gray-200">
+              {cartItems.map((item, index) => (
+                <li key={index} className="p-4 flex">
+                  <img 
+                    src={item.image} 
+                    alt={item.title}
+                    className="h-24 w-24 flex-shrink-0 object-contain" 
+                  />
+                  <div className="ml-4 flex-1">
+                    <div className="flex justify-between">
+                      <h3 className="text-lg font-medium text-gray-900">{item.title}</h3>
+                      <p className="ml-4 text-lg font-semibold text-gray-900">
+                        ${item.price.toFixed(2)}
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">{item.category}</p>
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        onClick={() => removeItem(index)}
+                        className="text-red-600 hover:text-red-900 text-sm font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
+              <div className="flex justify-between text-lg font-medium text-gray-900">
+                <p>Total</p>
+                <p>${total.toFixed(2)}</p>
+              </div>
+              <div className="mt-6">
+                <button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md shadow-sm"
+                >
+                  Checkout
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default ContactPage;
+export default CartPage;
