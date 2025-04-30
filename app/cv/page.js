@@ -1,14 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const ProductList = () => {
+  const router = useRouter();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [category, setCategory] = useState('all');
   const [sort, setSort] = useState('asc');
   const [cartItems, setCartItems] = useState([]);
-  const [showCart, setShowCart] = useState(false);
 
   const fetchProducts = async () => {
     try {
@@ -40,10 +41,21 @@ const ProductList = () => {
 
   const addToCart = (product) => {
     setCartItems([...cartItems, product]);
+    // Save to localStorage
+    localStorage.setItem('cartItems', JSON.stringify([...cartItems, product]));
+  };
+
+  const navigateToCart = () => {
+    router.push('/cart');
   };
 
   useEffect(() => {
     fetchProducts();
+    // Load cart items from localStorage
+    const savedCart = localStorage.getItem('cartItems');
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
   }, [category, sort]);
 
   const categories = [
@@ -86,61 +98,23 @@ const ProductList = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      {/* Cart Icon */}
-      <div className="fixed top-4 right-4 z-50">
-        <button 
-          onClick={() => setShowCart(!showCart)}
-          className="relative p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      {/* Cart Icon with Navigation */}
+      <button 
+        onClick={navigateToCart}
+        className="fixed top-4 right-4 z-50 p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition group"
+      >
+        <div className="relative">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700 group-hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           {cartItems.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce">
               {cartItems.length}
             </span>
           )}
-        </button>
-
-        {/* Cart Dropdown */}
-        {showCart && (
-          <div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-xl z-50">
-            <div className="p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">Your Cart</h3>
-            </div>
-            <div className="max-h-96 overflow-y-auto">
-              {cartItems.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
-                  Your cart is empty
-                </div>
-              ) : (
-                <ul className="divide-y divide-gray-200">
-                  {cartItems.map((item, index) => (
-                    <li key={index} className="p-4 flex items-center">
-                      <img 
-                        src={item.image} 
-                        alt={item.title}
-                        className="h-12 w-12 object-contain mr-3" 
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 line-clamp-1">{item.title}</p>
-                        <p className="text-sm text-gray-600">${item.price.toFixed(2)}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            {cartItems.length > 0 && (
-              <div className="p-4 border-t">
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-200">
-                  Checkout (${cartItems.reduce((sum, item) => sum + item.price, 0).toFixed(2)})
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+        </div>
+        <span className="sr-only">View Cart</span>
+      </button>
 
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
